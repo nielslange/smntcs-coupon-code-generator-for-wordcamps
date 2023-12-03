@@ -24,5 +24,8 @@ define( 'SMNTCS_COUPON_CODE_PLUGIN_FILE', __FILE__ );
 define( 'SMNTCS_COUPON_CODE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SMNTCS_COUPON_CODE_PLUGIN_VERSION', '1.0.0' );
 
-// Include the main class file.
-require_once plugin_dir_path( SMNTCS_COUPON_CODE_PLUGIN_FILE ) . 'includes/class-smntcs-coupon-code-generator.php';
+// Load plugin classes.
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-admin-scripts.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-file-manager.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-settings.php';
+require_once plugin_dir_path( __FILE__ ) . 'includes/class-utils.php';

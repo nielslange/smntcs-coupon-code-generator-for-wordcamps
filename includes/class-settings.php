@@ -1,29 +1,26 @@
 <?php
 /**
- * SMNTCS Coupon Code Generator for WordCamps
+ * Handles the settings and configuration options for the plugin.
  *
  * @package SMNTCS_Coupon_Code_Generator
  */
 
 /**
- * SMNTCS Coupon Code Generator for WordCamps class
+ * SMNTCS Settings class
  *
  * @since 1.0.0
  */
-class SMNTCS_Coupon_Code_Generator {
+class SMNTCS_Settings {
 
 	/**
-	 * Constructor
+	 * Constructor to set up action hooks.
 	 *
 	 * @since 1.0.0
 	 */
 	public function __construct() {
-		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
-		add_action( 'admin_enqueue_scripts', [ $this, 'admin_enqueue_scripts' ] );
-		add_action( 'admin_init', [ $this, 'form_settings' ] );
-		add_action( 'admin_init', [ $this, 'download_xml_file' ] );
-
 		add_action( 'plugin_action_links_' . plugin_basename( SMNTCS_COUPON_CODE_PLUGIN_FILE ), [ $this, 'add_plugin_settings_link' ] );
+		add_action( 'admin_menu', [ $this, 'add_admin_menu' ] );
+		add_action( 'admin_init', [ $this, 'form_settings' ] );
 	}
 
 	/**
@@ -35,54 +32,10 @@ class SMNTCS_Coupon_Code_Generator {
 	 */
 	public function add_plugin_settings_link( $url ) {
 		$admin_url     = admin_url( 'tools.php?page=coupon-code-generator' );
-		$settings_link = sprintf(
-			'<a href="%s">%s</a>',
-			$admin_url,
-			__( 'Settings', 'smntcs-nord-admin-theme' )
-		);
+		$settings_link = sprintf( '<a href="%s">%s</a>', $admin_url, __( 'Settings', 'smntcs-nord-admin-theme' ) );
 		array_unshift( $url, $settings_link );
 
 		return $url;
-	}
-
-
-	/**
-	 * Enqueue scripts and styles
-	 *
-	 * @param string $hook The current admin page.
-	 * @return void
-	 * @since 1.0.0
-	 */
-	public function admin_enqueue_scripts( $hook ) {
-		// Only enqueue scripts on the plugin page.
-		if ( 'tools_page_coupon-code-generator' !== $hook ) {
-			return;
-		}
-
-		// Enqueue datepicker scripts and styles.
-		wp_enqueue_script( 'jquery-ui-datepicker' );
-		wp_enqueue_script(
-			'coupon-generator-datepicker-script',
-			SMNTCS_COUPON_CODE_PLUGIN_URL . 'js/datepicker.js',
-			[ 'jquery', 'jquery-ui-datepicker' ],
-			SMNTCS_COUPON_CODE_PLUGIN_VERSION,
-			[ 'in_footer' => true ]
-		);
-		wp_enqueue_style(
-			'coupon-generator-datepicker-styles',
-			SMNTCS_COUPON_CODE_PLUGIN_URL . '/js/jquery-ui.css',
-			[],
-			SMNTCS_COUPON_CODE_PLUGIN_VERSION
-		);
-
-		// Enqueue copy to clipboard script.
-		wp_enqueue_script(
-			'coupon-generator-copy-script',
-			SMNTCS_COUPON_CODE_PLUGIN_URL . 'js/copyToClipboard.js',
-			[],
-			SMNTCS_COUPON_CODE_PLUGIN_VERSION,
-			[ 'in_footer' => true ]
-		);
 	}
 
 	/**
@@ -101,11 +54,11 @@ class SMNTCS_Coupon_Code_Generator {
 		);
 	}
 
-	/**
-	 * Register the form settings
-	 *
-	 * @since 1.0.0
-	 */
+		/**
+		 * Register the form settings
+		 *
+		 * @since 1.0.0
+		 */
 	public function form_settings() {
 		add_settings_section(
 			'generate_coupon_codes_section',
@@ -190,6 +143,18 @@ class SMNTCS_Coupon_Code_Generator {
 	}
 
 	/**
+	 * Display the section
+	 *
+	 * @param array $args The field arguments.
+	 * @return void
+	 * @since 1.0.0
+	 */
+	public function smntcs_coupon_code_generator_section_callback( $args ) {
+		wp_nonce_field( 'coupon_code_generator_action', 'coupon_code_generator_nonce' );
+	}
+
+
+	/**
 	 * Display the text field
 	 *
 	 * @param array $args The field arguments.
@@ -222,10 +187,27 @@ class SMNTCS_Coupon_Code_Generator {
 	}
 
 	/**
-	 * Display the plugin page
+	 * Generate coupon codes
 	 *
+	 * @param int    $number Number of coupon codes to generate.
+	 * @param string $prefix Prefix for coupon codes.
+	 * @return array
 	 * @since 1.0.0
 	 */
+	private function generate_coupon_codes( $number, $prefix ) {
+		$codes = [];
+		for ( $i = 0; $i < $number; $i++ ) {
+			$code    = $prefix ? "{$prefix}_" . wp_generate_password( 8, false ) : wp_generate_password( 8, false );
+			$codes[] = $code;
+		}
+		return $codes;
+	}
+
+		/**
+		 * Display the plugin page
+		 *
+		 * @since 1.0.0
+		 */
 	public function display_plugin_page() {
 		$coupon_codes = get_transient( 'smntcs_coupon_codes' );
 		$xml_file_url = get_transient( 'smntcs_coupon_codes_xml_url' );
@@ -239,7 +221,7 @@ class SMNTCS_Coupon_Code_Generator {
 				$coupon_codes = $this->generate_coupon_codes( intval( wp_unslash( $_POST['number_of_coupons'] ) ), sanitize_text_field( wp_unslash( $_POST['prefix'] ) ) );
 				set_transient( 'smntcs_coupon_codes', $coupon_codes, 10 * MINUTE_IN_SECONDS );
 
-				$xml_file_url = $this->generate_xml( $coupon_codes );
+				$xml_file_url = SMNTCS_File_Manager::generate_xml( $coupon_codes );
 				set_transient( 'smntcs_coupon_codes_xml_url', $xml_file_url, 10 * MINUTE_IN_SECONDS );
 			}
 		}
@@ -279,96 +261,6 @@ class SMNTCS_Coupon_Code_Generator {
 
 		return $error;
 	}
-
-	/**
-	 * Generate coupon codes
-	 *
-	 * @param int    $number Number of coupon codes to generate.
-	 * @param string $prefix Prefix for coupon codes.
-	 * @return array
-	 * @since 1.0.0
-	 */
-	private function generate_coupon_codes( $number, $prefix ) {
-		$codes = [];
-		for ( $i = 0; $i < $number; $i++ ) {
-			$code    = $prefix ? "{$prefix}_" . wp_generate_password( 8, false ) : wp_generate_password( 8, false );
-			$codes[] = $code;
-		}
-		return $codes;
-	}
-
-	/**
-	 * Generate XML file
-	 *
-	 * @param array $coupon_codes Coupon codes.
-	 * @return string
-	 * @since 1.0.0
-	 */
-	private function generate_xml( $coupon_codes ) {
-		global $wp_filesystem;
-
-		require_once ABSPATH . 'wp-admin/includes/file.php';
-		WP_Filesystem();
-
-		$xml_content  = '<?xml version="1.0" encoding="UTF-8"?>';
-		$xml_content .= '<coupons>';
-		foreach ( $coupon_codes as $code ) {
-			$xml_content .= "<coupon><code>{$code}</code></coupon>";
-		}
-		$xml_content .= '</coupons>';
-
-		$file_name = 'coupon-codes-' . time() . '.xml';
-		$file_path = wp_upload_dir()['path'] . '/' . $file_name;
-
-		update_option( 'smntcs_coupon_codes_xml_file_path', $file_path );
-		$wp_filesystem->put_contents( $file_path, $xml_content );
-
-		return wp_upload_dir()['url'] . '/' . $file_name;
-	}
-
-	/**
-	 * Display the section
-	 *
-	 * @param array $args The field arguments.
-	 * @return void
-	 * @since 1.0.0
-	 */
-	public function smntcs_coupon_code_generator_section_callback( $args ) {
-		wp_nonce_field( 'coupon_code_generator_action', 'coupon_code_generator_nonce' );
-	}
-
-	/**
-	 * Download XML file
-	 *
-	 * @return void
-	 * @since 1.0.0
-	 */
-	public function download_xml_file() {
-		if ( ! current_user_can( 'manage_options' ) ) {
-			return;
-		}
-
-		if ( isset( $_POST['coupon_code_generator_nonce'] ) && ! wp_verify_nonce( sanitize_text_field( wp_unslash( $_POST['coupon_code_generator_nonce'] ) ), 'coupon_code_generator_action' ) ) {
-			return;
-		}
-
-		if ( isset( $_GET['coupon_codes'] ) && 'xml' === $_GET['coupon_codes'] ) {
-			$file_path = get_option( 'smntcs_coupon_codes_xml_file_path' );
-
-			if ( file_exists( $file_path ) ) {
-				header( 'Content-Description: File Transfer' );
-				header( 'Content-Type: application/xml' );
-				header( 'Content-Disposition: attachment; filename=' . basename( $file_path ) );
-				header( 'Expires: 0' );
-				header( 'Cache-Control: must-revalidate' );
-				header( 'Pragma: public' );
-				header( 'Content-Length: ' . filesize( $file_path ) );
-				flush();
-				readfile( $file_path );
-				exit;
-			}
-		}
-	}
 }
 
-new SMNTCS_Coupon_Code_Generator();
+new SMNTCS_Settings();
