@@ -18,9 +18,9 @@
 defined( 'ABSPATH' ) || exit;
 
 // Define plugin file.
-require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
-define( 'SMNTCS_COUPON_CODE_PLUGIN_FILE', __FILE__ );
+require_once ABSPATH . 'wp-admin/includes/plugin.php';
 define( 'SMNTCS_COUPON_CODE_PLUGIN_DIR', __DIR__ );
+define( 'SMNTCS_COUPON_CODE_PLUGIN_FILE', __FILE__ );
 define( 'SMNTCS_COUPON_CODE_PLUGIN_URL', plugin_dir_url( __FILE__ ) );
 define( 'SMNTCS_COUPON_CODE_PLUGIN_VERSION', '1.0.0' );
 

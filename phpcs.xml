@@ -3,11 +3,15 @@
 	<description>Custom coding standards for SMNTCS Coupon Code Generator for WordCamps</description>
 
 	<!-- Arguments-->
-	<arg value="psvn"/>
+	<arg value="sp"/>
 	<arg name="colors"/>
 	<arg name="parallel" value="100"/>
 	<arg name="extensions" value="php"/>
 	<arg name="cache" value=".phpcs.cache"/>
+
+	<!-- Include the WordPress rulesets. -->
+	<rule ref="WordPress-Extra"/>
+	<rule ref="WordPress-Docs"/>
 
 	<!-- Exclude files and directories-->
 	<exclude-pattern>.github/*</exclude-pattern>
@@ -15,13 +19,22 @@
 	<exclude-pattern>node_modules/*</exclude-pattern>
 
 	<!-- ExcludeInclude sniffs-->
+
 	<rule ref="Generic.Formatting.MultipleStatementAlignment">
 		<properties>
 			<property name="maxPadding" value="12"/>
 			<property name="error" value="true"/>
 		</properties>
 	</rule>
+	<rule ref="WordPress.Arrays.ArrayKeySpacingRestrictions">
+		<properties>
+			<property name="spacesAroundArrayKeys" value="exact"/>
+		</properties>
+	</rule>
 	<rule ref="Generic.Arrays.DisallowLongArraySyntax"/>
+	<rule ref="Generic.Arrays.DisallowShortArraySyntax">
+		<severity>0</severity>
+	</rule>
 
 	<!-- Exclude sniffs-->
 	<rule ref="WordPress">
